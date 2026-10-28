@@ -1,0 +1,158 @@
+name: ci
+
+# PR: lint + tests, terraform fmt/validate, terraform plan for infra/.
+# Push to main: the same checks, then terraform apply for infra/.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TF_VERSION: "1.13.4"
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+defaults:
+  run:
+    shell: bash # explicit bash = -eo pipefail, so `| tee` does not hide failures
+
+jobs:
+  backend:
+    name: backend (ruff + pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dev tools
+        run: pip install -r backend/requirements-dev.txt
+
+      - name: Ruff lint
+        run: ruff check --output-format=github .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Pytest
+        working-directory: backend
+        run: pytest -q
+
+  terraform-check:
+    name: terraform (fmt + validate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: terraform fmt -check
+        run: terraform -chdir=infra fmt -check -recursive
+
+      - name: terraform validate (main stack)
+        run: |
+          terraform -chdir=infra init -backend=false
+          terraform -chdir=infra validate
+
+      - name: terraform validate (bootstrap)
+        run: |
+          terraform -chdir=infra/bootstrap init -backend=false
+          terraform -chdir=infra/bootstrap validate
+
+  plan:
+    name: terraform plan (infra/)
+    if: github.event_name == 'pull_request'
+    needs: [backend, terraform-check]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC token for AWS, no stored keys
+    concurrency:
+      group: tf-plan-${{ github.head_ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Who am I
+        run: aws sts get-caller-identity --query Arn --output text
+
+      - name: terraform init
+        run: terraform -chdir=infra init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: terraform plan
+        run: |
+          terraform -chdir=infra plan -no-color -lock-timeout=5m -out=tfplan | tee plan.txt
+          {
+            echo "### terraform plan (infra/)"
+            echo '```'
+            grep -E -A3 '^(Plan:|No changes|Changes to Outputs)' plan.txt || tail -n 5 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  apply:
+    name: terraform apply (infra/)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, terraform-check]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # GitHub OIDC token for AWS, no stored keys
+    # Never run two applies at once and never cancel one halfway.
+    concurrency:
+      group: tf-apply-main
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Who am I
+        run: aws sts get-caller-identity --query Arn --output text
+
+      - name: terraform init
+        run: terraform -chdir=infra init -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: terraform plan
+        run: terraform -chdir=infra plan -no-color -lock-timeout=5m -out=tfplan
+
+      - name: terraform apply
+        run: |
+          terraform -chdir=infra apply -no-color -lock-timeout=5m tfplan | tee apply.txt
+          {
+            echo "### terraform apply (infra/)"
+            echo '```'
+            grep -E '^Apply complete' apply.txt || tail -n 5 apply.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

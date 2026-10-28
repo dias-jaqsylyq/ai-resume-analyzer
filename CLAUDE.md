@@ -32,6 +32,13 @@ Talk to Dias in Russian; write code, comments, commits, PRs and docs in English.
 - Never invent AWS API parameters; check the docs or say you are unsure.
 
 ## Commands (keep this section current as the repo grows)
-- Backend tests: `cd backend && pytest -q`
-- Lint: `ruff check . && ruff format --check .`
-- Infra: `cd infra && terraform fmt -check && terraform validate`
+Run from the repo root (`make help` lists targets).
+- Install dev tools: `make install` (pinned in `backend/requirements-dev.txt`)
+- Backend tests: `make test` (= `cd backend && pytest -q`)
+- Lint: `make lint` (= `ruff check . && ruff format --check . && terraform -chdir=infra fmt -check -recursive`)
+- Format: `make fmt`
+- Infra validate (no AWS needed): `terraform -chdir=infra init -backend=false && terraform -chdir=infra validate`
+- Infra plan/apply: CI only (`.github/workflows/ci.yml`): plan on every PR, apply on push to main.
+  Backend bucket comes from repo variable `TF_STATE_BUCKET`:
+  `terraform -chdir=infra init -backend-config="bucket=$TF_STATE_BUCKET"`
+- The Terraform registry may be blocked in cloud sessions; then CI is the source of truth for `validate`.

@@ -20,6 +20,10 @@ Talk to Dias in Russian; write code, comments, commits, PRs and docs in English.
   applied once by Dias).
 - No AWS credentials in sessions; deploy only through GitHub Actions with OIDC.
 - Security: least-privilege IAM per function, KMS encryption, no CV text or PII in logs.
+- Logging: handlers never log document text or model output, not even at DEBUG or inside an
+  exception message — only ids, sizes, counts, durations and status. Key redaction in
+  `resume_analyzer.log` is only a safety net (it cannot see text inside a free-text message).
+  Every handler gets a test like `backend/tests/test_no_content_in_logs.py`.
 - Metrics are measured, never invented.
 
 ## How to work

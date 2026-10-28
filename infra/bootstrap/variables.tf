@@ -15,3 +15,9 @@ variable "github_repo" {
   type        = string
   default     = "ai-resume-analyzer"
 }
+
+variable "github_oidc_sub_prefix" {
+  description = "OIDC subject prefix GitHub issues for this repo (immutable format with numeric owner/repo IDs)"
+  type        = string
+  default     = "repo:dias-jaqsylyq@167603429/ai-resume-analyzer@1437005887"
+}

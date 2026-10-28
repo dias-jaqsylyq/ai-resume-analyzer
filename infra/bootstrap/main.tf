@@ -35,6 +35,9 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id  = data.aws_caller_identity.current.account_id
   repo        = "${var.github_owner}/${var.github_repo}"
+  # GitHub OIDC "immutable subject" format: owner and repo names carry their numeric IDs.
+  # Check with: gh api repos/<owner>/<repo>/actions/oidc/customization/sub  (sub_claim_prefix)
+  sub_prefix  = var.github_oidc_sub_prefix
   bucket_name = "ai-resume-analyzer-tfstate-${local.account_id}"
 }
 
@@ -114,13 +117,13 @@ data "aws_iam_policy_document" "github_trust" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Only this repository: pushes to main and pull requests.
+    # Only this repository (matched by immutable owner/repo IDs): pushes to main and pull requests.
     condition {
-      test     = "StringLike"
+      test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${local.repo}:ref:refs/heads/main",
-        "repo:${local.repo}:pull_request",
+        "${local.sub_prefix}:ref:refs/heads/main",
+        "${local.sub_prefix}:pull_request",
       ]
     }
   }

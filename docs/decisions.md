@@ -9,3 +9,4 @@
 | 2026-10-28 | GitHub OIDC role trusted only for this repo's `main` and pull requests | No long-lived keys; other repos/branches cannot assume it | Wildcard `repo:owner/*` trust |
 | 2026-10-28 | Deploy role temporarily has AdministratorAccess | Speed for a single-owner private repo; narrowing tracked as backlog task RA-24 | Hand-written least-privilege policy up front |
 | 2026-10-28 | S3 native state locking (`use_lockfile`) instead of DynamoDB lock table | Fewer resources, supported since Terraform 1.10 | DynamoDB lock table |
+| 2026-10-28 | OIDC trust matches GitHub's immutable subject (`repo:owner@ID/repo@ID:...`) with `StringEquals` | The repo uses `use_immutable_subject`; name-only `sub` was rejected (AccessDenied in CloudTrail). IDs also block repo-rename / name-reuse attacks | Name-only `sub` with wildcards |

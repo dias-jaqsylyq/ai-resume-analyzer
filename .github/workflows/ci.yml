@@ -108,7 +108,7 @@ jobs:
           {
             echo "### terraform plan (infra/)"
             echo '```'
-            grep -E '^(Plan:|No changes)' plan.txt || tail -n 5 plan.txt
+            grep -E -A3 '^(Plan:|No changes|Changes to Outputs)' plan.txt || tail -n 5 plan.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 

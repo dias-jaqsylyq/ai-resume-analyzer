@@ -33,8 +33,8 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  account_id  = data.aws_caller_identity.current.account_id
-  repo        = "${var.github_owner}/${var.github_repo}"
+  account_id = data.aws_caller_identity.current.account_id
+  repo       = "${var.github_owner}/${var.github_repo}"
   # GitHub OIDC "immutable subject" format: owner and repo names carry their numeric IDs.
   # Check with: gh api repos/<owner>/<repo>/actions/oidc/customization/sub  (sub_claim_prefix)
   sub_prefix  = var.github_oidc_sub_prefix

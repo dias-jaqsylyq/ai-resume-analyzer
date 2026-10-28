@@ -1,0 +1,3 @@
+# Dev and CI tooling (pinned so local runs and CI agree)
+pytest==9.1.1
+ruff==0.16.9

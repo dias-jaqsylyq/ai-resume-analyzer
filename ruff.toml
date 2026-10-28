@@ -1,0 +1,10 @@
+# Shared ruff config for all Python in the repo (run from the repo root).
+target-version = "py313"
+line-length = 100
+
+[lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+
+[lint.per-file-ignores]
+# assert is the point of a test
+"**/tests/**" = ["S101"]

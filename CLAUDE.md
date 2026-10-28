@@ -42,3 +42,7 @@ Run from the repo root (`make help` lists targets).
   Backend bucket comes from repo variable `TF_STATE_BUCKET`:
   `terraform -chdir=infra init -backend-config="bucket=$TF_STATE_BUCKET"`
 - The Terraform registry may be blocked in cloud sessions; then CI is the source of truth for `validate`.
+  Workaround: download `terraform` and `terraform-provider-aws` zips from releases.hashicorp.com, unpack the
+  provider into `<mirror>/registry.terraform.io/hashicorp/aws/<ver>/linux_amd64/`, point `TF_CLI_CONFIG_FILE` at a
+  `provider_installation { filesystem_mirror { path = "<mirror>" } }` file, then `init -backend=false` + `validate`
+  in a copy of `infra/` (keeps `.terraform` out of the repo).

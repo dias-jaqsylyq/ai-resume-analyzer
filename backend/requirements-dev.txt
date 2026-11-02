@@ -1,3 +1,5 @@
 # Dev and CI tooling (pinned so local runs and CI agree)
 pytest==9.1.1
 ruff==0.16.9
+# Provided by the Lambda Python runtime; pinned here for tests (botocore Stubber validates API params)
+boto3==1.43.120

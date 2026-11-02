@@ -1,16 +1,16 @@
 """Guard for the logging rule: handlers never log document text or model output.
 
 Key-based redaction in ``resume_analyzer.log`` cannot catch text inside a free-text message
-(``logger.info(f"got {text}")``), so these tests run the handler on a CV with recognisable
-content and fail if any of it appears anywhere in the captured output, at DEBUG level,
-on success and on failure.
+(``logger.info(f"got {text}")``), so these tests run the handler on a CV and a model answer
+with recognisable content and fail if any of it appears anywhere in the captured output,
+at DEBUG level, on success and on failure.
 """
 
 import json
 from types import SimpleNamespace
 
 import pytest
-from resume_analyzer import log
+from resume_analyzer import bedrock, log
 from resume_analyzer.handlers import process_analysis
 from resume_analyzer.textract import MAX_RESULTS
 
@@ -22,6 +22,27 @@ CV_LINES = [
     "Senior Platform Engineer at Fictional Widgets LLC",
     "Kubernetes, Terraform, Rust, PostgreSQL",
 ]
+JOB_DESCRIPTION = "Wanted: Glorptastic Hyperlane Wrangler with Rust"
+# Synthetic model answer. Every string is distinctive, so finding it in logs means a leak.
+MODEL_REPORT = {
+    "ats_score": 73,
+    "score_rationale": "Quixotic rationale: strong Rust, thin on hyperlane wrangling",
+    "matched_skills": ["Rust-Zebulon-Skill"],
+    "missing_skills": ["Glorptastic Hyperlane Wrangling"],
+    "suggestions": [
+        {"priority": "high", "section": "Marchetti Section", "advice": "Add the wrangler badge"}
+    ],
+    "summary": "Overall Zebulon summary paragraph for the leak test",
+}
+MODEL_LINES = [
+    MODEL_REPORT["score_rationale"],
+    *MODEL_REPORT["matched_skills"],
+    *MODEL_REPORT["missing_skills"],
+    "Marchetti Section",
+    "Add the wrangler badge",
+    MODEL_REPORT["summary"],
+]
+CONTENT = CV_LINES + MODEL_LINES + [JOB_DESCRIPTION]
 
 
 def sqs_event() -> dict:
@@ -49,8 +70,53 @@ def assert_not_logged(output: str, lines: list[str]) -> None:
     assert not leaked, f"document text found in logs: {leaked}"
 
 
+def converse_response(report_input: object) -> dict:
+    return {
+        "output": {
+            "message": {
+                "role": "assistant",
+                "content": [
+                    {
+                        "toolUse": {
+                            "toolUseId": "t-1",
+                            "name": bedrock.TOOL_NAME,
+                            "input": report_input,
+                        }
+                    }
+                ],
+            }
+        },
+        "stopReason": "tool_use",
+        "usage": {"inputTokens": 900, "outputTokens": 200, "totalTokens": 1100},
+        "metrics": {"latencyMs": 1200},
+    }
+
+
 @pytest.fixture
-def textract(textract_stub, monkeypatch: pytest.MonkeyPatch):
+def db(fake_store):
+    fake_store.add_analysis("user-1", "an-1", JOB_DESCRIPTION)
+    return fake_store
+
+
+@pytest.fixture
+def live_bedrock(bedrock_stub, monkeypatch: pytest.MonkeyPatch):
+    """BEDROCK_MODE=live with Converse answered by Stubber (request checked against the API)."""
+    client, stubber = bedrock_stub
+    monkeypatch.setenv("BEDROCK_MODE", "live")
+    monkeypatch.delenv("BEDROCK_MODEL_ID", raising=False)
+    monkeypatch.setattr(process_analysis, "bedrock_client", lambda: client)
+    return stubber
+
+
+def expect_converse(stubber, report_input: object) -> None:
+    request = bedrock.build_request(
+        "\n".join(CV_LINES), JOB_DESCRIPTION, model=bedrock.DEFAULT_MODEL_ID
+    )
+    stubber.add_response("converse", converse_response(report_input), request)
+
+
+@pytest.fixture
+def textract(textract_stub, db, monkeypatch: pytest.MonkeyPatch):
     client, stubber = textract_stub
     monkeypatch.setattr(process_analysis, "textract_client", lambda: client)
     stubber.add_response(
@@ -77,30 +143,57 @@ def textract(textract_stub, monkeypatch: pytest.MonkeyPatch):
 
 
 def test_handler_does_not_log_extracted_text(textract, all_log_output) -> None:
+    """Mock mode (the default): the CV never reaches the logs."""
     result = process_analysis.handler(sqs_event(), lambda_context())
 
     output = all_log_output()
     assert result == {"batchItemFailures": []}
     assert '"chars"' in output  # the handler did log, just not the content
-    assert_not_logged(output, CV_LINES)
+    assert_not_logged(output, CONTENT)
 
 
-def test_handler_does_not_log_extracted_text_on_failure(
-    textract, all_log_output, monkeypatch: pytest.MonkeyPatch
+def test_handler_does_not_log_model_output(textract, live_bedrock, db, all_log_output) -> None:
+    expect_converse(live_bedrock, MODEL_REPORT)
+
+    result = process_analysis.handler(sqs_event(), lambda_context())
+
+    output = all_log_output()
+    assert result == {"batchItemFailures": []}
+    assert db.items[("user-1", "an-1")]["result"]["summary"] == MODEL_REPORT["summary"]
+    assert '"output_tokens": 200' in output  # the handler did log, just not the content
+    assert_not_logged(output, CONTENT)
+
+
+def test_invalid_model_output_is_not_logged(textract, live_bedrock, db, all_log_output) -> None:
+    """Invalid answers are logged by field and rule only, never by value."""
+    bad = {**MODEL_REPORT, "ats_score": "Zebulon-ninety", "suggestions": "Marchetti Section"}
+    expect_converse(live_bedrock, bad)
+    expect_converse(live_bedrock, bad)
+
+    result = process_analysis.handler(sqs_event(), lambda_context())
+
+    output = all_log_output()
+    assert result == {"batchItemFailures": []}  # permanent failure, recorded on the item
+    assert db.items[("user-1", "an-1")]["error"] == "InvalidReport"
+    assert "invalid model output" in output
+    assert_not_logged(output, [*CONTENT, "Zebulon-ninety"])
+
+
+def test_handler_does_not_log_content_on_failure(
+    textract, live_bedrock, db, all_log_output, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A failure after extraction (e.g. in the next stage) must not dump the text either."""
-    original = process_analysis.process_upload
+    """A failure after extraction and analysis (here: the DynamoDB write) dumps nothing."""
+    expect_converse(live_bedrock, MODEL_REPORT)
 
-    def fail_after_extraction(upload, context):
-        original(upload, context)
-        raise RuntimeError("next stage failed")
+    def write_failed(*args, **kwargs):
+        raise RuntimeError("write failed")
 
-    monkeypatch.setattr(process_analysis, "process_upload", fail_after_extraction)
+    monkeypatch.setattr(db, "mark_done", write_failed)
 
     result = process_analysis.handler(sqs_event(), lambda_context())
 
     assert result == {"batchItemFailures": [{"itemIdentifier": "m-1"}]}
-    assert_not_logged(all_log_output(), CV_LINES)
+    assert_not_logged(all_log_output(), CONTENT)
 
 
 def test_guard_catches_a_leak(all_log_output) -> None:

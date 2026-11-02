@@ -81,7 +81,7 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "AI Resume Analyzer user API (Cognito JWT)"
 
   cors_configuration {
-    allow_origins = var.allowed_origins
+    allow_origins = local.allowed_origins
     allow_methods = ["GET", "POST", "OPTIONS"]
     allow_headers = ["authorization", "content-type"]
     max_age       = 3600
@@ -147,7 +147,7 @@ resource "aws_s3_bucket_cors_configuration" "uploads" {
 
   cors_rule {
     allowed_methods = ["POST"]
-    allowed_origins = var.allowed_origins
+    allowed_origins = local.allowed_origins
     allowed_headers = ["*"]
     max_age_seconds = 3600
   }

@@ -1,5 +1,5 @@
-# One execution role per Lambda, least privilege. Functions are created in later tasks;
-# each task adds only the permissions it needs (Textract in RA-7, Bedrock + Guardrails in RA-8).
+# One execution role per Lambda, least privilege. Each function gets only the permissions its
+# code uses; Guardrails (RA-11) adds bedrock:ApplyGuardrail later.
 
 data "aws_iam_policy_document" "lambda_trust" {
   statement {
@@ -26,6 +26,7 @@ locals {
     s3       = "s3.${var.region}.amazonaws.com"
     sqs      = "sqs.${var.region}.amazonaws.com"
     dynamodb = "dynamodb.${var.region}.amazonaws.com"
+    textract = "textract.${var.region}.amazonaws.com" # async Textract reads the SSE-KMS upload
   }
 
   log_group_arn = {
@@ -88,6 +89,20 @@ data "aws_iam_policy_document" "process_analysis" {
     resources = ["${aws_s3_bucket.uploads.arn}/${var.uploads_prefix}*"]
   }
 
+  # Textract actions do not support resource-level permissions.
+  statement {
+    sid       = "Textract"
+    actions   = ["textract:StartDocumentTextDetection", "textract:GetDocumentTextDetection"]
+    resources = ["*"]
+  }
+
+  # Converse is authorized by bedrock:InvokeModel; only the configured Nova model.
+  statement {
+    sid       = "InvokeNova"
+    actions   = ["bedrock:InvokeModel"]
+    resources = ["arn:aws:bedrock:${var.region}::foundation-model/${var.bedrock_model_id}"]
+  }
+
   statement {
     sid       = "UpdateAnalysis"
     actions   = ["dynamodb:GetItem", "dynamodb:UpdateItem"]
@@ -108,7 +123,7 @@ data "aws_iam_policy_document" "process_analysis" {
     condition {
       test     = "StringEquals"
       variable = "kms:ViaService"
-      values   = [local.kms_via.s3, local.kms_via.sqs, local.kms_via.dynamodb]
+      values   = [local.kms_via.s3, local.kms_via.sqs, local.kms_via.dynamodb, local.kms_via.textract]
     }
   }
 }

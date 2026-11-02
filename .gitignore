@@ -31,3 +31,6 @@ out/
 *.pem
 *.csv
 .DS_Store
+
+# Terraform build output (Lambda zip)
+infra/build/

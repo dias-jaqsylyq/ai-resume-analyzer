@@ -51,8 +51,12 @@ GET /analyses, GET /analyses/{id} → Lambda "read-analyses" → DynamoDB (per-u
   cache before calling Textract/Bedrock, uploads expire automatically.
 - **Infra layout**: `infra/bootstrap` (state bucket, OIDC, deploy role — applied once locally),
   `infra/` main stack with remote state in S3 (native lockfile).
-- **CI/CD**: PR → lint, pytest, `terraform fmt/validate/plan`; merge to main → `terraform apply`
-  and frontend deploy, authenticated with GitHub OIDC.
+- **Frontend**: `frontend/` Next.js static export → private S3 bucket → CloudFront (OAC, security
+  headers, folder-URL rewrite function). Pages: `/` (sign in, new analysis, history) and
+  `/analysis/?id=<ulid>` (status polling every 3 s, then the report). `config.json` with the API URL
+  and Cognito ids is written at deploy time from Terraform outputs.
+- **CI/CD**: PR → lint, pytest, frontend typecheck/tests/build, `terraform fmt/validate/plan`;
+  merge to main → `terraform apply`, then frontend deploy (S3 sync + invalidation), with GitHub OIDC.
 
 ## Repository layout (suggested)
 ```

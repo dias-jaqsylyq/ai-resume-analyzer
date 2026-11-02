@@ -1,4 +1,4 @@
-.PHONY: help install test lint fmt
+.PHONY: help install test lint fmt web-install web-test web-build web-dev
 
 help: ## Show available targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
@@ -18,3 +18,15 @@ fmt: ## Auto-format Python and Terraform
 	ruff check --fix .
 	ruff format .
 	terraform -chdir=infra fmt -recursive
+
+web-install: ## Install frontend dependencies (npm ci)
+	cd frontend && npm ci
+
+web-test: ## Frontend typecheck + unit tests
+	cd frontend && npm run typecheck && npm test
+
+web-build: ## Frontend static export into frontend/out
+	cd frontend && npm run build
+
+web-dev: ## Frontend dev server (needs frontend/public/config.json)
+	cd frontend && npm run dev

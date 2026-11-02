@@ -50,3 +50,51 @@ variable "log_retention_days" {
   type        = number
   default     = 14
 }
+
+variable "allowed_origins" {
+  description = "Browser origins allowed to call the API and upload to S3 (the frontend URL is added with the hosting task)"
+  type        = list(string)
+  default     = ["http://localhost:3000"]
+}
+
+variable "allow_self_signup" {
+  description = "Let anyone create an account in the Cognito user pool (false = admin-created users only)"
+  type        = bool
+  default     = true
+}
+
+variable "max_upload_bytes" {
+  description = "Largest CV accepted by the pre-signed upload (process-analysis enforces the same 5 MiB default)"
+  type        = number
+  default     = 5242880
+}
+
+variable "upload_url_ttl_seconds" {
+  description = "Lifetime of the pre-signed upload"
+  type        = number
+  default     = 300
+}
+
+variable "api_throttle_rate" {
+  description = "API steady-state requests per second (all routes)"
+  type        = number
+  default     = 5
+}
+
+variable "api_throttle_burst" {
+  description = "API burst limit (all routes)"
+  type        = number
+  default     = 10
+}
+
+variable "create_throttle_rate" {
+  description = "POST /analyses requests per second (each can start a paid Textract + Bedrock run)"
+  type        = number
+  default     = 1
+}
+
+variable "create_throttle_burst" {
+  description = "POST /analyses burst limit"
+  type        = number
+  default     = 3
+}

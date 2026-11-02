@@ -1,6 +1,6 @@
 # Main stack for AI Resume Analyzer. Deployed only by GitHub Actions (plan on PR, apply on main).
 # Core data plane (RA-6): kms.tf, s3.tf, sqs.tf, dynamodb.tf, iam.tf.
-# Lambdas, API, Cognito and alarms are added in later tasks.
+# API (RA-15): cognito.tf, api.tf. Alarms are added in a later task.
 
 data "aws_caller_identity" "current" {}
 

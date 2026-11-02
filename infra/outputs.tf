@@ -47,3 +47,18 @@ output "bedrock_mode" {
   description = "Whether process-analysis calls Bedrock (live) or the deterministic mock"
   value       = var.bedrock_mode
 }
+
+output "api_url" {
+  description = "Base URL of the user API"
+  value       = aws_apigatewayv2_stage.default.invoke_url
+}
+
+output "cognito_user_pool_id" {
+  description = "Cognito user pool for sign-in"
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_client_id" {
+  description = "Public Cognito app client for the web app"
+  value       = aws_cognito_user_pool_client.web.id
+}

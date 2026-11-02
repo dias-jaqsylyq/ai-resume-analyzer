@@ -143,3 +143,78 @@ def test_cache_key_depends_on_every_input() -> None:
     base = cache_key("h", "JD", "m", "1")
     assert base == cache_key("h", " JD \n", "m", "1")  # surrounding whitespace ignored
     assert len({base, cache_key("h2", "JD", "m", "1"), cache_key("h", "JD", "m", "2")}) == 3
+
+
+ULID = "01JAAAAAAAAAAAAAAAAAAAAAA1"
+
+
+def test_create_analysis_writes_pending_item_once(ddb) -> None:
+    store, stubber = ddb
+    stubber.add_response(
+        "put_item",
+        {},
+        {
+            "TableName": "analyses",
+            "Item": {
+                "pk": {"S": "USER#user-1"},
+                "sk": {"S": f"ANALYSIS#{ULID}"},
+                "analysis_id": {"S": ULID},
+                "status": {"S": "PENDING"},
+                "job_description": {"S": "JD"},
+                "created_at": ANY,
+                "updated_at": ANY,
+                "job_title": {"S": "Dev"},
+            },
+            "ConditionExpression": "attribute_not_exists(pk)",
+        },
+    )
+
+    item = store.create_analysis("user-1", ULID, "JD", "Dev")
+
+    assert item["status"] == "PENDING"
+
+
+def _query_request(**extra) -> dict:
+    return {
+        "TableName": "analyses",
+        "KeyConditionExpression": "pk = :pk AND begins_with(sk, :prefix)",
+        "ExpressionAttributeValues": {
+            ":pk": {"S": "USER#user-1"},
+            ":prefix": {"S": "ANALYSIS#"},
+        },
+        "ExpressionAttributeNames": {"#status": "status", "#result": "result", "#error": "error"},
+        "ProjectionExpression": (
+            "sk, analysis_id, #status, created_at, updated_at, job_title, #result.ats_score, #error"
+        ),
+        "ScanIndexForward": False,
+        "Limit": 2,
+        **extra,
+    }
+
+
+def test_list_analyses_queries_own_partition_newest_first(ddb) -> None:
+    store, stubber = ddb
+    item = {
+        "pk": {"S": "USER#user-1"},
+        "sk": {"S": f"ANALYSIS#{ULID}"},
+        "status": {"S": "DONE"},
+        "result": {"M": {"ats_score": {"N": "81"}}},
+    }
+    stubber.add_response(
+        "query",
+        {"Items": [item], "LastEvaluatedKey": {"pk": item["pk"], "sk": item["sk"]}},
+        _query_request(),
+    )
+
+    items, next_id = store.list_analyses("user-1", 2)
+
+    assert items[0]["result"]["ats_score"] == 81
+    assert next_id == ULID
+
+
+def test_list_analyses_continues_after_cursor(ddb) -> None:
+    store, stubber = ddb
+    start = {"pk": {"S": "USER#user-1"}, "sk": {"S": f"ANALYSIS#{ULID}"}}
+    stubber.add_response("query", {"Items": []}, _query_request(ExclusiveStartKey=start))
+
+    assert store.list_analyses("user-1", 2, ULID) == ([], None)

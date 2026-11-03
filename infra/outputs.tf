@@ -37,3 +37,13 @@ output "lambda_role_arns" {
   description = "Execution role ARN per Lambda function"
   value       = { for k, r in aws_iam_role.lambda : k => r.arn }
 }
+
+output "process_analysis_function" {
+  description = "Lambda that consumes the analysis queue"
+  value       = aws_lambda_function.process_analysis.function_name
+}
+
+output "bedrock_mode" {
+  description = "Whether process-analysis calls Bedrock (live) or the deterministic mock"
+  value       = var.bedrock_mode
+}

@@ -49,6 +49,12 @@ Run from the repo root (`make help` lists targets).
   `cd backend && PYTHONPATH=src python3 scripts/bedrock_smoke.py`
 - process-analysis env: `ANALYSES_TABLE`, `CACHE_TABLE`, `BEDROCK_MODE` (`mock` default | `live`),
   `BEDROCK_MODEL_ID`, `BEDROCK_GUARDRAIL_ID`/`_VERSION`, `MAX_RECEIVE_COUNT`, `CACHE_TTL_SECONDS`
+- Live API check (Dias, in CloudShell; prints only ids/status/score):
+  `cd backend && API_URL=... CLIENT_ID=... SMOKE_EMAIL=... SMOKE_PASSWORD=... python3 scripts/api_smoke.py cv.pdf`
+- create-analysis env: `ANALYSES_TABLE`, `UPLOADS_BUCKET`, `UPLOADS_PREFIX`, `MAX_UPLOAD_BYTES`,
+  `UPLOAD_URL_TTL_SECONDS`; read-analyses env: `ANALYSES_TABLE`
+- API (HTTP API + Cognito JWT): `POST /analyses`, `GET /analyses?limit=&cursor=`,
+  `GET /analyses/{analysis_id}`; outputs `api_url`, `cognito_user_pool_id`, `cognito_client_id`
 - The Terraform registry may be blocked in cloud sessions; then CI is the source of truth for `validate`.
   Workaround: download `terraform` and `terraform-provider-aws` zips from releases.hashicorp.com, unpack the
   provider into `<mirror>/registry.terraform.io/hashicorp/aws/<ver>/linux_amd64/`, point `TF_CLI_CONFIG_FILE` at a

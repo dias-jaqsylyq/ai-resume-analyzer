@@ -83,6 +83,27 @@ class FakeStore:
     def mark_failed(self, user_sub: str, analysis_id: str, error_code: str) -> None:
         self._set(user_sub, analysis_id, "FAILED", error=error_code)
 
+    def create_analysis(self, user_sub, analysis_id, job_description, job_title) -> dict:
+        assert (user_sub, analysis_id) not in self.items  # ~ attribute_not_exists(pk)
+        item = {
+            "analysis_id": analysis_id,
+            "status": "PENDING",
+            "job_description": job_description,
+            "created_at": "2026-11-02T00:00:00+00:00",
+        }
+        if job_title:
+            item["job_title"] = job_title
+        self.items[(user_sub, analysis_id)] = item
+        return dict(item)
+
+    def list_analyses(self, user_sub, limit, after_analysis_id=None):
+        ids = sorted((a for (u, a) in self.items if u == user_sub), reverse=True)
+        if after_analysis_id:
+            ids = [a for a in ids if a < after_analysis_id]
+        page = ids[:limit]
+        items = [{"sk": f"ANALYSIS#{a}", **self.items[(user_sub, a)]} for a in page]
+        return items, (page[-1] if len(ids) > limit else None)
+
     def get_cached(self, key: str) -> dict | None:
         return self.cache.get(key)
 
@@ -128,3 +149,21 @@ def fake_store(monkeypatch: pytest.MonkeyPatch) -> FakeStore:
     monkeypatch.setattr(process_analysis, "cv_sha256", lambda upload: f"sha-{upload.key}")
     monkeypatch.delenv("BEDROCK_MODE", raising=False)
     return store
+
+
+@pytest.fixture
+def fake_api_store(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeStore]:
+    """create-analysis and read-analyses wired to one in-memory store; S3 signing uses fake
+    credentials (pre-signing is local, nothing is sent)."""
+    from resume_analyzer.handlers import create_analysis, read_analyses
+
+    store = FakeStore()
+    monkeypatch.setattr(create_analysis, "store", lambda: store)
+    monkeypatch.setattr(read_analyses, "store", lambda: store)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "testing")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "testing")
+    monkeypatch.delenv("AWS_SESSION_TOKEN", raising=False)
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+    create_analysis.s3_client.cache_clear()
+    yield store
+    create_analysis.s3_client.cache_clear()

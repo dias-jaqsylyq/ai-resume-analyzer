@@ -66,6 +66,64 @@ class Store:
     def _key(user_sub: str, analysis_id: str) -> dict[str, Any]:
         return {"pk": {"S": f"USER#{user_sub}"}, "sk": {"S": f"ANALYSIS#{analysis_id}"}}
 
+    def create_analysis(
+        self, user_sub: str, analysis_id: str, job_description: str, job_title: str | None
+    ) -> dict[str, Any]:
+        """Write the PENDING item; fails (ConditionalCheckFailed) if the id already exists."""
+        now = _now()
+        item = {
+            "pk": f"USER#{user_sub}",
+            "sk": f"ANALYSIS#{analysis_id}",
+            "analysis_id": analysis_id,
+            "status": PENDING,
+            "job_description": job_description,
+            "created_at": now,
+            "updated_at": now,
+        }
+        if job_title:
+            item["job_title"] = job_title
+        self.client.put_item(
+            TableName=self.analyses_table,
+            Item=_to_ddb(item),
+            ConditionExpression="attribute_not_exists(pk)",
+        )
+        return item
+
+    def list_analyses(
+        self, user_sub: str, limit: int, after_analysis_id: str | None = None
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        """One page of a user's analyses, newest first (ULID sort keys sort by time).
+
+        Returns summary fields only (no job description or full report) and the id to pass
+        as ``after_analysis_id`` for the next page, or None on the last page.
+        """
+        request: dict[str, Any] = {
+            "TableName": self.analyses_table,
+            "KeyConditionExpression": "pk = :pk AND begins_with(sk, :prefix)",
+            "ExpressionAttributeValues": {
+                ":pk": {"S": f"USER#{user_sub}"},
+                ":prefix": {"S": "ANALYSIS#"},
+            },
+            "ExpressionAttributeNames": {
+                "#status": "status",
+                "#result": "result",
+                "#error": "error",
+            },
+            "ProjectionExpression": (
+                "sk, analysis_id, #status, created_at, updated_at, job_title, "
+                "#result.ats_score, #error"
+            ),
+            "ScanIndexForward": False,
+            "Limit": limit,
+        }
+        if after_analysis_id:
+            request["ExclusiveStartKey"] = self._key(user_sub, after_analysis_id)
+        response = self.client.query(**request)
+        items = [_from_ddb(i) for i in response.get("Items", [])]
+        last = response.get("LastEvaluatedKey")
+        next_id = last["sk"]["S"].removeprefix("ANALYSIS#") if last else None
+        return items, next_id
+
     def get_analysis(self, user_sub: str, analysis_id: str) -> dict[str, Any] | None:
         response = self.client.get_item(
             TableName=self.analyses_table,

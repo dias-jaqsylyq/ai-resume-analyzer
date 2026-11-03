@@ -8,8 +8,9 @@ any change to the flow below is recorded in `docs/decisions.md`.
 Browser (Next.js on S3 + CloudFront)
    │  1. sign in (Cognito)
    │  2. POST /analyses {job_description} → API Gateway (Cognito authorizer, throttling)
-   │        → Lambda "create-analysis": writes PENDING item, returns pre-signed S3 PUT URL
-   │  3. PUT CV.pdf directly to S3 (uploads bucket, KMS, lifecycle expiry)
+   │        → Lambda "create-analysis": writes PENDING item, returns pre-signed S3 POST
+   │     (policy enforces application/pdf and ≤ 5 MiB)
+   │  3. POST CV.pdf directly to S3 (uploads bucket, KMS, lifecycle expiry)
    ▼
 S3 ObjectCreated event → SQS "analysis-queue" (redrive → DLQ after N attempts)
    ▼

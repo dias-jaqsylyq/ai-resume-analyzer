@@ -222,7 +222,9 @@ _STOPWORD_TEXT = """
     so such than that the their them then there these they this to under up us using very want
     was we well were what when where which while who will with within work working would year
     years you your able ability experience strong good knowledge skills skill team join looking
-    candidate position company"""
+    candidate position company
+    build builds run runs keep make help hands nice bonus plus ideally preferred great
+    new day based across etc e.g like including include includes other related least"""
 _STOPWORDS = frozenset(_STOPWORD_TEXT.split())
 
 
@@ -239,18 +241,21 @@ def analyze_mock(cv_text: str, job_description: str) -> Analysis:
     started = time.monotonic()
     wanted = _keywords(job_description)[:40]
     have = set(_keywords(cv_text))
-    matched = [w for w in wanted if w in have]
-    missing = [w for w in wanted if w not in have]
-    score = round(100 * len(matched) / len(wanted)) if wanted else 0
+    # The report holds at most 20 skills per list; score only what is shown so the
+    # rationale, the score and the dashboard's "skills coverage" all agree.
+    matched = [w for w in wanted if w in have][:20]
+    missing = [w for w in wanted if w not in have][:20]
+    total = len(matched) + len(missing)
+    score = round(100 * len(matched) / total) if total else 0
     report = validate_report(
         {
             "ats_score": score,
             "score_rationale": (
-                f"Mock analysis (no AI call): {len(matched)} of {len(wanted)} job description "
+                f"Mock analysis (no AI call): {len(matched)} of {total} job description "
                 "keywords appear in the resume."
             ),
-            "matched_skills": matched[:20],
-            "missing_skills": missing[:20],
+            "matched_skills": matched,
+            "missing_skills": missing,
             "suggestions": [
                 {
                     "priority": "high" if i < 2 else "medium",

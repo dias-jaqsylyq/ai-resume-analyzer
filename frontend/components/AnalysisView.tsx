@@ -9,6 +9,7 @@ import { useApp } from "./AppProvider.tsx";
 import { Chevron } from "./Icons.tsx";
 import { ReportView } from "./ReportView.tsx";
 import { StatusBadge } from "./StatusBadge.tsx";
+import { Steps } from "./Steps.tsx";
 
 const POLL_MS = 3000;
 const MAX_POLLS = 100; // ~5 minutes; the pipeline normally finishes in well under a minute
@@ -80,6 +81,7 @@ export function AnalysisView() {
       {!analysis && !error && <p className="muted">Loading…</p>}
       {analysis && !isTerminal(analysis.status) && (
         <section className="card processing center">
+          <Steps status={analysis.status} />
           <div className="spinner" aria-hidden="true" />
           <p className="score-verdict">
             {analysis.status === "PENDING" ? "Waiting for your CV to arrive…" : "Reading your CV and scoring it…"}
@@ -89,6 +91,7 @@ export function AnalysisView() {
       )}
       {analysis?.status === "FAILED" && (
         <section className="card stack">
+          <Steps status={analysis.status} />
           <p className="alert">{failureMessage(analysis.error)}</p>
           <div>
             <Link href="/" className="btn btn-primary">Try again</Link>

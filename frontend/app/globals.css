@@ -290,6 +290,67 @@ details .pre { margin: 0; padding: 0 24px 20px; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
+
+/* ---------- Landing (signed out) ---------- */
+.container-wide, .header-inner.wide, .footer.wide { max-width: 1040px; }
+.landing { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; min-height: calc(100vh - 200px); }
+.landing .auth { margin: 0 auto; }
+.landing-hero { display: flex; flex-direction: column; gap: 16px; }
+.display { font-size: 3rem; line-height: 1.06; letter-spacing: -0.035em; }
+.lead { font-size: 1.25rem; line-height: 1.4; color: var(--text-2); letter-spacing: -0.015em; max-width: 30em; }
+.features { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+.features li { display: flex; gap: 14px; align-items: flex-start; }
+.features li > span:last-child { display: flex; flex-direction: column; gap: 1px; }
+.features .muted { font-size: 0.9375rem; }
+.feature-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+
+.page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
+.page-head .btn { flex-shrink: 0; }
+
+/* ---------- Progress steps ---------- */
+.steps { list-style: none; margin: 0 0 32px; padding: 0; display: flex; justify-content: center; gap: 0; width: 100%; max-width: 460px; }
+.step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+.step + .step::before {
+  content: ""; position: absolute; top: 13px; right: 50%; width: 100%; height: 2px;
+  background: var(--surface-2); z-index: 0;
+}
+.step-done + .step::before, .step-done + .step-done::before { background: var(--accent); }
+.step-dot {
+  position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.8125rem; font-weight: 600; background: var(--surface-2); color: var(--text-3);
+}
+.step-done .step-dot { background: var(--accent); color: var(--accent-text); }
+.step-active .step-dot { background: var(--surface); color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.step-failed .step-dot { background: var(--red); color: #fff; }
+.step-label { font-size: 0.8125rem; color: var(--text-3); text-align: center; }
+.step-done .step-label, .step-active .step-label { color: var(--text); }
+.step-active .step-label { font-weight: 600; }
+.card.stack .steps { margin: 8px auto 4px; }
+
+/* ---------- Footer ---------- */
+.footer {
+  max-width: 760px; margin: 0 auto; padding: 24px 20px 40px;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px;
+  font-size: 0.8125rem; color: var(--text-3); border-top: 1px solid var(--separator);
+}
+.footer a { color: var(--text-2); }
+
+/* ---------- Print: the report as a clean page ---------- */
+@media print {
+  :root { --bg: #fff; --surface: #fff; --shadow: none; color-scheme: light; }
+  body { font-size: 11pt; }
+  .header, .footer, .back, .btn, details, .badge { display: none !important; }
+  .container { padding: 0; max-width: none; }
+  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .score-card { flex-direction: row; text-align: left; }
+}
+
 /* ---------- Mobile ---------- */
 @media (max-width: 600px) {
   body { font-size: 16px; }
@@ -306,4 +367,12 @@ details .pre { margin: 0; padding: 0 24px 20px; }
   .history-item { padding-left: 16px; }
   .history li + li .history-item::before { left: 16px; }
   .btn-submit { width: 100%; }
+  .page-head { flex-direction: column; align-items: flex-start; }
+  .display { font-size: 2.25rem; }
+  .lead { font-size: 1.0625rem; }
+  .step-label { font-size: 0.75rem; }
+}
+
+@media (max-width: 900px) {
+  .landing { grid-template-columns: 1fr; gap: 32px; min-height: 0; padding-top: 8px; }
 }

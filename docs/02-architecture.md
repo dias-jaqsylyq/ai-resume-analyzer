@@ -17,9 +17,11 @@ S3 ObjectCreated event → SQS "analysis-queue" (redrive → DLQ after N attempt
 Lambda "process-analysis" (SQS trigger, batch size 1, partial batch failures)
    a. idempotency check + cache lookup by SHA-256(CV bytes + JD)
    b. Textract DetectDocumentText (async API for multi-page PDFs) → clean text/Markdown
-   c. Bedrock Converse API, Amazon Nova model, with Guardrails attached
-      (prompt-attack filter on CV text, PII filter) → JSON
+   c. Bedrock Converse API, Amazon Nova model, with a Guardrail attached
+      (prompt-attack filter on the CV + JD text; a block → FAILED, no retry) → JSON
    d. validate JSON against schema; retry once on invalid output; else fail → DLQ
+   d2. ApplyGuardrail (source OUTPUT) on the report's text fields: names, emails, phones,
+      addresses masked to {NAME}/{EMAIL}/…; harmful content blocked → FAILED
    e. write result to DynamoDB (status DONE), write cache entry with TTL
    ▼
 GET /analyses, GET /analyses/{id} → Lambda "read-analyses" → DynamoDB (per-user partition)

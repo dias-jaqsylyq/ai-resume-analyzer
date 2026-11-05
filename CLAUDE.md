@@ -52,6 +52,8 @@ Run from the repo root (`make help` lists targets).
   Deploy: CI job `deploy-frontend` after `apply` on main (S3 sync + CloudFront invalidation).
 - Live Bedrock check (Dias, in AWS CloudShell; prints only counts/status):
   `cd backend && PYTHONPATH=src python3 scripts/bedrock_smoke.py`
+- Live Guardrail check (Dias, in CloudShell; no model call, works with Nova quota 0; prints only
+  actions): see the docstring of `backend/scripts/guardrail_smoke.py` (reads id/version from the Lambda env)
 - process-analysis env: `ANALYSES_TABLE`, `CACHE_TABLE`, `BEDROCK_MODE` (`mock` default | `live`),
   `BEDROCK_MODEL_ID`, `BEDROCK_GUARDRAIL_ID`/`_VERSION`, `MAX_RECEIVE_COUNT`, `CACHE_TTL_SECONDS`
 - Live API check (Dias, in CloudShell; prints only ids/status/score):

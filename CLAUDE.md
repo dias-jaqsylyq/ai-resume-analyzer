@@ -70,3 +70,6 @@ Run from the repo root (`make help` lists targets).
   provider into `<mirror>/registry.terraform.io/hashicorp/aws/<ver>/linux_amd64/`, point `TF_CLI_CONFIG_FILE` at a
   `provider_installation { filesystem_mirror { path = "<mirror>" } }` file, then `init -backend=false` + `validate`
   in a copy of `infra/` (keeps `.terraform` out of the repo).
+- Benchmarks for `docs/metrics.md` (`backend/scripts/benchmark.py`, prints only counts/timings/$):
+  `local` (in-process handler latency, mock, no AWS), `cost` (cost model from list prices),
+  `e2e cv.pdf --runs 10` (Dias, in CloudShell, same env as `api_smoke.py`; upload → DONE p50/p95)

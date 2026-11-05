@@ -12,7 +12,7 @@ Rows marked **pending** need a run on the deployed stack by the owner (commands 
 | AWS resources in the bootstrap stack (state bucket, OIDC, deploy role) | 8 | `resource` blocks in `infra/bootstrap/main.tf` (no `for_each`) | 2026-11-05 |
 | Backend unit tests | 133 passed | `cd backend && python3 -m pytest -q` (includes 5 tests for `scripts/benchmark.py`) | 2026-11-05 |
 | Backend statement coverage | 97% (719 statements, 22 missed) | `cd backend && python3 -m coverage run --source=src -m pytest -q && python3 -m coverage report` (coverage 7.17.2, not part of CI) | 2026-11-05 |
-| Frontend unit tests | 14 passed | `cd frontend && npm test` (`node --test`) | 2026-11-05 |
+| Frontend unit tests | 15 passed | `cd frontend && npm test` (`node --test`) | 2026-11-05 |
 | CI duration, pull request | p50 67 s, max 93 s (n = 10) | GitHub Actions run wall clock (created → completed) of the last 10 `ci` runs on PRs (#4–#12); jobs: ruff + pytest, frontend typecheck/tests/build, terraform fmt/validate/plan | 2026-11-05 |
 | CI duration, push to main (checks + apply + frontend deploy) | p50 106 s, max 267 s (n = 5) | Same, last 5 `ci` runs on `main` (#5, #8, #9, #10, #11 merges). Max = PR #10, which created the CloudFront distribution | 2026-11-05 |
 | process-analysis own compute, mock mode, cache miss | p50 0.14 ms, p95 0.16 ms (n = 1000) | `cd backend && PYTHONPATH=src python3 scripts/benchmark.py local --runs 1000`: the real handler in-process with Textract and DynamoDB replaced by in-memory fakes, 1-page synthetic CV. Excludes every AWS round trip; shows the code itself adds < 1 ms | 2026-11-05 |

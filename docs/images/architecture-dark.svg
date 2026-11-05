@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="660" viewBox="0 0 1220 660" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#8e8e93"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#2997ff"/></marker></defs>
+<rect width="1220" height="660" rx="20" fill="#0d1117"/>
+<rect x="270" y="340" width="940" height="270" rx="16" fill="#111418" stroke="#3a3a3c" stroke-dasharray="5 5"/>
+<text x="290" y="596" font-size="13" font-weight="600" fill="#2997ff" letter-spacing="0.6">ASYNC PIPELINE</text>
+<text x="290" y="36" font-size="13" font-weight="600" fill="#a1a1a6" letter-spacing="0.6">REQUEST PATH</text>
+<path d="M224 280 H252 V90 H284" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M252 180 H284" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M252 280 H284" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M132 310 V450 H284" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<text x="200" y="440" font-size="12" fill="#a1a1a6" text-anchor="middle">PDF upload</text>
+<path d="M474.0 280.0 H507.0 V230.0 H540.0" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M474.0 280.0 H507.0 V330.0 H540.0" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M724.0 230.0 H757.0 V280.0 H790.0" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M724.0 330.0 H757.0 V280.0 H790.0" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M474.0 450.0 L540.0 450.0" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<text x="507.0" y="444.0" font-size="12" fill="#a1a1a6" text-anchor="middle">event</text>
+<path d="M724.0 450.0 L790.0 450.0" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<path d="M632.0 480.0 L632.0 530.0" fill="none" stroke="#8e8e93" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M882.0 420.0 L882.0 310.0" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<text x="912.0" y="359.0" font-size="12" fill="#a1a1a6" text-anchor="middle">report</text>
+<path d="M974.0 450.0 H987.0 V390.0 H1000.0" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<path d="M974.0 450.0 H987.0 V510.0 H1000.0" fill="none" stroke="#2997ff" stroke-width="2" marker-end="url(#b)"/>
+<rect x="40" y="250" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="56" y="276" font-size="15" font-weight="600" fill="#f5f5f7">Browser</text>
+<text x="56" y="295" font-size="12.5" fill="#a1a1a6">Next.js dashboard</text>
+<rect x="290" y="60" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="306" y="86" font-size="15" font-weight="600" fill="#f5f5f7">CloudFront + S3</text>
+<text x="306" y="105" font-size="12.5" fill="#a1a1a6">static site</text>
+<rect x="290" y="150" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="306" y="176" font-size="15" font-weight="600" fill="#f5f5f7">Cognito</text>
+<text x="306" y="195" font-size="12.5" fill="#a1a1a6">sign-in, JWT</text>
+<rect x="290" y="250" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="306" y="276" font-size="15" font-weight="600" fill="#f5f5f7">API Gateway</text>
+<text x="306" y="295" font-size="12.5" fill="#a1a1a6">HTTP API, throttled</text>
+<rect x="540" y="200" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="556" y="226" font-size="15" font-weight="600" fill="#f5f5f7">λ create-analysis</text>
+<text x="556" y="245" font-size="12.5" fill="#a1a1a6">pre-signed upload</text>
+<rect x="540" y="300" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="556" y="326" font-size="15" font-weight="600" fill="#f5f5f7">λ read-analyses</text>
+<text x="556" y="345" font-size="12.5" fill="#a1a1a6">history, report</text>
+<rect x="790" y="250" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="806" y="276" font-size="15" font-weight="600" fill="#f5f5f7">DynamoDB</text>
+<text x="806" y="295" font-size="12.5" fill="#a1a1a6">analyses + cache</text>
+<rect x="290" y="420" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="306" y="446" font-size="15" font-weight="600" fill="#f5f5f7">S3 uploads</text>
+<text x="306" y="465" font-size="12.5" fill="#a1a1a6">KMS, 7-day expiry</text>
+<rect x="540" y="420" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="556" y="446" font-size="15" font-weight="600" fill="#f5f5f7">SQS queue</text>
+<text x="556" y="465" font-size="12.5" fill="#a1a1a6">batch 1, retries</text>
+<rect x="540" y="530" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="556" y="556" font-size="15" font-weight="600" fill="#f5f5f7">SQS DLQ</text>
+<text x="556" y="575" font-size="12.5" fill="#a1a1a6">after 3 receives</text>
+<rect x="790" y="420" width="184" height="60" rx="12" fill="#102a43" stroke="#2997ff"/>
+<text x="806" y="446" font-size="15" font-weight="600" fill="#f5f5f7">λ process-analysis</text>
+<text x="806" y="465" font-size="12.5" fill="#a1a1a6">cache, extract, score</text>
+<rect x="1000" y="360" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="1016" y="386" font-size="15" font-weight="600" fill="#f5f5f7">Textract</text>
+<text x="1016" y="405" font-size="12.5" fill="#a1a1a6">PDF to text</text>
+<rect x="1000" y="480" width="184" height="60" rx="12" fill="#1c1c1e" stroke="#3a3a3c"/>
+<text x="1016" y="506" font-size="15" font-weight="600" fill="#f5f5f7">Bedrock Nova</text>
+<text x="1016" y="525" font-size="12.5" fill="#a1a1a6">+ Guardrails</text>
+<circle cx="44" cy="638" r="4" fill="#2997ff"/><text x="56" y="642" font-size="13" fill="#a1a1a6">One KMS key encrypts S3, SQS, DynamoDB</text>
+<circle cx="374" cy="638" r="4" fill="#2997ff"/><text x="386" y="642" font-size="13" fill="#a1a1a6">CloudWatch: 9 alarms</text>
+<circle cx="584" cy="638" r="4" fill="#2997ff"/><text x="596" y="642" font-size="13" fill="#a1a1a6">Terraform: 62 resources</text>
+<circle cx="824" cy="638" r="4" fill="#2997ff"/><text x="836" y="642" font-size="13" fill="#a1a1a6">GitHub Actions + OIDC deploy</text>
+</svg>

@@ -13,7 +13,7 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)
 ![AWS serverless](https://img.shields.io/badge/AWS-serverless-232F3E?logo=amazonwebservices&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-148%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-149%20passing-2ea44f)
 ![Coverage](https://img.shields.io/badge/coverage-97%25-2ea44f)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -26,7 +26,7 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
   <img src="docs/images/hero-light.png" alt="FitScore report page on desktop and the new-analysis form on a phone">
 </picture>
 
-| 62 | ~$0.003 | $0 | 148 |
+| 62 | ~$0.003 | $0 | 149 |
 | :---: | :---: | :---: | :---: |
 | AWS resources, all Terraform | per CV analyzed ([cost model](docs/metrics.md#estimates-cost-model-not-a-bill)) | at idle, nothing always-on | unit tests, 97% backend coverage |
 

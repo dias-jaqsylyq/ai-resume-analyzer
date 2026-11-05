@@ -1,5 +1,5 @@
 # One execution role per Lambda, least privilege. Each function gets only the permissions its
-# code uses; Guardrails (RA-11) adds bedrock:ApplyGuardrail later.
+# code uses.
 
 data "aws_iam_policy_document" "lambda_trust" {
   statement {
@@ -101,6 +101,13 @@ data "aws_iam_policy_document" "process_analysis" {
     sid       = "InvokeNova"
     actions   = ["bedrock:InvokeModel"]
     resources = ["arn:aws:bedrock:${var.region}::foundation-model/${var.bedrock_model_id}"]
+  }
+
+  # Converse with guardrailConfig and the ApplyGuardrail call on the report; only our guardrail.
+  statement {
+    sid       = "ApplyGuardrail"
+    actions   = ["bedrock:ApplyGuardrail"]
+    resources = [aws_bedrock_guardrail.analysis.guardrail_arn]
   }
 
   statement {

@@ -35,7 +35,10 @@ resource "aws_lambda_function" "process_analysis" {
       MAX_RECEIVE_COUNT = tostring(var.max_receive_count) # must equal the queue's redrive maxReceiveCount
       BEDROCK_MODE      = var.bedrock_mode
       BEDROCK_MODEL_ID  = var.bedrock_model_id
-      LOG_LEVEL         = "INFO"
+      # Used only in live mode; mock mode makes no Bedrock call at all.
+      BEDROCK_GUARDRAIL_ID      = aws_bedrock_guardrail.analysis.guardrail_id
+      BEDROCK_GUARDRAIL_VERSION = aws_bedrock_guardrail_version.analysis.version
+      LOG_LEVEL                 = "INFO"
     }
   }
 

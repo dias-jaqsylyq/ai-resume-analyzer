@@ -173,7 +173,7 @@ def process_upload(upload: Upload, context: Any) -> Outcome:
     db.mark_processing(upload.user_sub, upload.analysis_id)
 
     model = bedrock.model_id()
-    key = cache_key(cv_sha256(upload), job_description, model, bedrock.PROMPT_VERSION)
+    key = cache_key(cv_sha256(upload), job_description, model, bedrock.cache_version())
     cached = db.get_cached(key)
     if cached is not None:
         db.mark_done(upload.user_sub, upload.analysis_id, cached["result"], model, "cache")
@@ -194,6 +194,7 @@ def process_upload(upload: Upload, context: Any) -> Outcome:
             "attempts": analysis.attempts,
             "input_tokens": analysis.input_tokens,
             "output_tokens": analysis.output_tokens,
+            "guardrail": analysis.guardrail,
             "duration_ms": analysis.duration_ms,
         },
     )

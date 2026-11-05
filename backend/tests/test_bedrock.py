@@ -33,7 +33,12 @@ def request(**kwargs) -> dict:
 
 @pytest.fixture(autouse=True)
 def _no_guardrail_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("BEDROCK_MODE", "BEDROCK_MODEL_ID", "BEDROCK_GUARDRAIL_ID"):
+    for name in (
+        "BEDROCK_MODE",
+        "BEDROCK_MODEL_ID",
+        "BEDROCK_GUARDRAIL_ID",
+        "BEDROCK_GUARDRAIL_VERSION",
+    ):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -71,8 +76,123 @@ def test_guardrail_is_attached_when_configured(bedrock_stub) -> None:
     expected = request(guardrail_id="gr-123", guardrail_version="1")
     assert expected["guardrailConfig"] == {"guardrailIdentifier": "gr-123", "guardrailVersion": "1"}
     stubber.add_response("converse", response([tool(REPORT)]), expected)
+    stubber.add_response(
+        "apply_guardrail", guardrail_response("NONE"), guard_request("gr-123", "1")
+    )
 
-    bedrock.analyze_live(client, CV, JD, guardrail_id="gr-123", guardrail_version="1")
+    analysis = bedrock.analyze_live(client, CV, JD, guardrail_id="gr-123", guardrail_version="1")
+
+    assert analysis.report == REPORT
+    assert analysis.guardrail == "passed"
+
+
+def guard_request(guardrail_id: str = "gr-123", version: str = "1", report: dict = REPORT) -> dict:
+    texts = [value for _, value in bedrock._text_fields(report)]
+    return {
+        "guardrailIdentifier": guardrail_id,
+        "guardrailVersion": version,
+        "source": "OUTPUT",
+        "content": [{"text": {"text": bedrock._FIELD_SEPARATOR.join(texts)}}],
+    }
+
+
+def guardrail_response(action: str, texts: list[str] | None = None) -> dict:
+    return {
+        "usage": {
+            "topicPolicyUnits": 0,
+            "contentPolicyUnits": 1,
+            "wordPolicyUnits": 0,
+            "sensitiveInformationPolicyUnits": 1,
+            "sensitiveInformationPolicyFreeUnits": 0,
+            "contextualGroundingPolicyUnits": 0,
+        },
+        "action": action,
+        "outputs": [{"text": t} for t in texts or []],
+        "assessments": [],
+    }
+
+
+def test_guardrail_is_read_from_the_environment(bedrock_stub, monkeypatch) -> None:
+    client, stubber = bedrock_stub
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_ID", "gr-env")
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_VERSION", "3")
+    stubber.add_response(
+        "converse", response([tool(REPORT)]), request(guardrail_id="gr-env", guardrail_version="3")
+    )
+    stubber.add_response(
+        "apply_guardrail", guardrail_response("NONE"), guard_request("gr-env", "3")
+    )
+
+    assert bedrock.analyze_live(client, CV, JD).guardrail == "passed"
+
+
+def test_personal_data_in_the_report_is_masked(bedrock_stub) -> None:
+    client, stubber = bedrock_stub
+    leaky = {**REPORT, "summary": "Jane Doe (jane@example.com) is a good fit."}
+    masked = [value for _, value in bedrock._text_fields(leaky)]
+    masked[-1] = "{NAME} ({EMAIL}) is a good fit."
+    stubber.add_response(
+        "converse", response([tool(leaky)]), request(guardrail_id="gr-123", guardrail_version="1")
+    )
+    stubber.add_response(
+        "apply_guardrail",
+        guardrail_response("GUARDRAIL_INTERVENED", [bedrock._FIELD_SEPARATOR.join(masked)]),
+        guard_request(report=leaky),
+    )
+
+    analysis = bedrock.analyze_live(client, CV, JD, guardrail_id="gr-123", guardrail_version="1")
+
+    assert analysis.report["summary"] == "{NAME} ({EMAIL}) is a good fit."
+    assert analysis.report["ats_score"] == 70
+    assert analysis.report["matched_skills"] == REPORT["matched_skills"]
+    assert analysis.guardrail == "masked"
+
+
+def test_blocked_report_raises(bedrock_stub) -> None:
+    client, stubber = bedrock_stub
+    stubber.add_response(
+        "converse", response([tool(REPORT)]), request(guardrail_id="gr-123", guardrail_version="1")
+    )
+    stubber.add_response(
+        "apply_guardrail",
+        guardrail_response(
+            "GUARDRAIL_INTERVENED", ["The analysis was blocked by the content filter."]
+        ),
+        guard_request(),
+    )
+
+    with pytest.raises(bedrock.AnalysisBlocked):
+        bedrock.analyze_live(client, CV, JD, guardrail_id="gr-123", guardrail_version="1")
+
+
+def test_prompt_injection_blocked_on_input_raises_without_a_retry(bedrock_stub) -> None:
+    client, stubber = bedrock_stub
+    blocked = response([{"text": "This resume could not be analyzed."}], "guardrail_intervened")
+    stubber.add_response("converse", blocked, request(guardrail_id="gr-123", guardrail_version="1"))
+
+    with pytest.raises(bedrock.AnalysisBlocked):
+        bedrock.analyze_live(client, CV, JD, guardrail_id="gr-123", guardrail_version="1")
+
+
+def test_cache_version_includes_the_guardrail_only_in_live_mode(monkeypatch) -> None:
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_ID", "gr-123")
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_VERSION", "2")
+    assert bedrock.cache_version() == bedrock.PROMPT_VERSION  # mock: no guardrail call
+    monkeypatch.setenv("BEDROCK_MODE", "live")
+    assert bedrock.cache_version() == f"{bedrock.PROMPT_VERSION}+guardrail:gr-123:2"
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_VERSION", "3")
+    assert bedrock.cache_version().endswith(":3")
+
+
+def test_mock_mode_ignores_the_guardrail(monkeypatch) -> None:
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_ID", "gr-123")
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_VERSION", "2")
+
+    def no_client():
+        raise AssertionError("Bedrock client created in mock mode")
+
+    analysis = bedrock.analyzer(no_client)(CV, JD)
+    assert (analysis.model_id, analysis.guardrail) == ("mock", "none")
 
 
 def test_invalid_output_is_retried_once(bedrock_stub) -> None:

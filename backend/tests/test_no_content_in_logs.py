@@ -196,6 +196,75 @@ def test_handler_does_not_log_content_on_failure(
     assert_not_logged(all_log_output(), CONTENT)
 
 
+def guarded_bedrock(live_bedrock, monkeypatch: pytest.MonkeyPatch, action: str, texts: list[str]):
+    """Live mode with a guardrail: Converse with guardrailConfig, then ApplyGuardrail."""
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_ID", "gr-1")
+    monkeypatch.setenv("BEDROCK_GUARDRAIL_VERSION", "1")
+    request = bedrock.build_request(
+        "\n".join(CV_LINES),
+        JOB_DESCRIPTION,
+        model=bedrock.DEFAULT_MODEL_ID,
+        guardrail_id="gr-1",
+        guardrail_version="1",
+    )
+    live_bedrock.add_response("converse", converse_response(MODEL_REPORT), request)
+    fields = [value for _, value in bedrock._text_fields(MODEL_REPORT)]
+    live_bedrock.add_response(
+        "apply_guardrail",
+        {
+            "usage": {
+                "topicPolicyUnits": 0,
+                "contentPolicyUnits": 1,
+                "wordPolicyUnits": 0,
+                "sensitiveInformationPolicyUnits": 1,
+                "sensitiveInformationPolicyFreeUnits": 0,
+                "contextualGroundingPolicyUnits": 0,
+            },
+            "action": action,
+            "outputs": [{"text": t} for t in texts],
+            "assessments": [],
+        },
+        {
+            "guardrailIdentifier": "gr-1",
+            "guardrailVersion": "1",
+            "source": "OUTPUT",
+            "content": [{"text": {"text": bedrock._FIELD_SEPARATOR.join(fields)}}],
+        },
+    )
+    return fields
+
+
+def test_masked_report_is_not_logged(
+    textract, live_bedrock, db, all_log_output, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fields = [value for _, value in bedrock._text_fields(MODEL_REPORT)]
+    masked = [f.replace("Zebulon", "{NAME}") for f in fields]
+    guarded_bedrock(
+        live_bedrock, monkeypatch, "GUARDRAIL_INTERVENED", [bedrock._FIELD_SEPARATOR.join(masked)]
+    )
+
+    result = process_analysis.handler(sqs_event(), lambda_context())
+
+    output = all_log_output()
+    assert result == {"batchItemFailures": []}
+    assert db.items[("user-1", "an-1")]["result"]["summary"].startswith("Overall {NAME}")
+    assert '"guardrail": "masked"' in output
+    assert_not_logged(output, [*CONTENT, *masked])
+
+
+def test_blocked_report_is_not_logged(
+    textract, live_bedrock, db, all_log_output, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    guarded_bedrock(live_bedrock, monkeypatch, "GUARDRAIL_INTERVENED", ["Blocked Zebulon notice"])
+
+    result = process_analysis.handler(sqs_event(), lambda_context())
+
+    output = all_log_output()
+    assert result == {"batchItemFailures": []}  # permanent failure, recorded on the item
+    assert db.items[("user-1", "an-1")]["error"] == "AnalysisBlocked"
+    assert_not_logged(output, [*CONTENT, "Blocked Zebulon notice"])
+
+
 def test_guard_catches_a_leak(all_log_output) -> None:
     """The check itself works: text in a free-text message or a print() is detected."""
     log.get_logger("leaky").debug("extracted: %s", CV_LINES[0])

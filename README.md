@@ -34,8 +34,7 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
 
 ## Demo
 
-<!-- Demo video: drag the .mp4 into this file on github.com and the link appears here. -->
-_Video coming soon._
+https://github.com/user-attachments/assets/11721fa3-d11b-40a0-b9ce-1cf9d21ca6ff
 
 The hosted demo is torn down after recording to keep the cost at $0. You can [deploy your own copy](#run-it-yourself); CI does the whole deploy.
 

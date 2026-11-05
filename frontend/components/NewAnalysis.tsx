@@ -36,12 +36,15 @@ export function NewAnalysis() {
 
   const busy = step !== "idle";
   return (
-    <section className="card">
-      <h2>New analysis</h2>
-      <form onSubmit={submit} className="stack">
+    <section className="stack">
+      <div className="page-title">
+        <h1>New analysis</h1>
+        <p className="muted">Paste a job posting and upload your CV. You get an ATS score, a skills match and concrete edits.</p>
+      </div>
+      <form onSubmit={submit} className="card stack">
         <label>
           <span>
-            Job title <span className="muted small">(optional)</span>
+            Job title <span className="optional">(optional)</span>
           </span>
           <input value={jobTitle} maxLength={200} onChange={(e) => setJobTitle(e.target.value)} placeholder="Cloud Engineer" />
         </label>
@@ -54,18 +57,22 @@ export function NewAnalysis() {
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Paste the full job posting here"
           />
-          <span className={`small ${jobDescription.length > MAX_JOB_DESCRIPTION_CHARS ? "danger" : "muted"}`}>
+          <span className={`small field-hint ${jobDescription.length > MAX_JOB_DESCRIPTION_CHARS ? "danger" : "muted"}`}>
             {jobDescription.length.toLocaleString()} / {MAX_JOB_DESCRIPTION_CHARS.toLocaleString()}
           </span>
         </label>
         <label>
-          CV (PDF, up to 5 MB)
+          <span>
+            CV <span className="optional">(PDF, up to 5 MB)</span>
+          </span>
           <input type="file" accept="application/pdf,.pdf" required onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
         {error && <p className="alert" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={busy}>
-          {step === "creating" ? "Creating…" : step === "uploading" ? "Uploading CV…" : "Analyze my CV"}
-        </button>
+        <div className="row">
+          <button type="submit" className="btn btn-primary btn-lg btn-submit" disabled={busy}>
+            {step === "creating" ? "Creating…" : step === "uploading" ? "Uploading CV…" : "Analyze my CV"}
+          </button>
+        </div>
       </form>
     </section>
   );

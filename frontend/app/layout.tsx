@@ -7,7 +7,15 @@ export const metadata: Metadata = {
   description: "Score a CV against a job description: ATS score, skills match and suggestions.",
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f5f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

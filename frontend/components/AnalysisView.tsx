@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ApiError } from "@/lib/api.ts";
 import { failureMessage, formatDate, isTerminal, type AnalysisDetail } from "@/lib/report.ts";
 import { useApp } from "./AppProvider.tsx";
+import { Chevron } from "./Icons.tsx";
 import { ReportView } from "./ReportView.tsx";
 import { StatusBadge } from "./StatusBadge.tsx";
 
@@ -52,16 +53,25 @@ export function AnalysisView() {
     };
   }, [api, id]);
 
-  if (!id) return <p className="alert">No analysis selected. <Link href="/">Back</Link></p>;
+  if (!id)
+    if (!id)
+    return (
+      <p className="alert">
+        No analysis selected. <Link href="/">Back</Link>
+      </p>
+    );
 
   return (
     <div className="stack">
       <div className="row between wrap">
-        <Link href="/" className="link">← All analyses</Link>
+        <Link href="/" className="back">
+          <Chevron direction="left" />
+          <span>All analyses</span>
+        </Link>
         {analysis && <StatusBadge status={analysis.status} />}
       </div>
       {analysis && (
-        <div>
+        <div className="page-title">
           <h1>{analysis.job_title || "Untitled job"}</h1>
           <p className="muted small">{formatDate(analysis.created_at)}</p>
         </div>
@@ -69,16 +79,20 @@ export function AnalysisView() {
       {error && <p className="alert" role="alert">{error}</p>}
       {!analysis && !error && <p className="muted">Loading…</p>}
       {analysis && !isTerminal(analysis.status) && (
-        <section className="card center">
+        <section className="card processing center">
           <div className="spinner" aria-hidden="true" />
-          <p>{analysis.status === "PENDING" ? "Waiting for your CV to arrive…" : "Reading your CV and scoring it…"}</p>
+          <p className="score-verdict">
+            {analysis.status === "PENDING" ? "Waiting for your CV to arrive…" : "Reading your CV and scoring it…"}
+          </p>
           <p className="muted small">This page updates by itself.{timedOut && " It is taking longer than usual; refresh later."}</p>
         </section>
       )}
       {analysis?.status === "FAILED" && (
-        <section className="card">
+        <section className="card stack">
           <p className="alert">{failureMessage(analysis.error)}</p>
-          <Link href="/" className="btn btn-primary">Try again</Link>
+          <div>
+            <Link href="/" className="btn btn-primary">Try again</Link>
+          </div>
         </section>
       )}
       {analysis?.status === "DONE" && analysis.report && <ReportView report={analysis.report} />}

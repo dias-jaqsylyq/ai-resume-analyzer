@@ -1,4 +1,10 @@
-import { scoreBand, skillsCoverage, sortSuggestions, type Report } from "@/lib/report.ts";
+import { scoreBand, skillsCoverage, sortSuggestions, type Report, type ScoreBand } from "@/lib/report.ts";
+
+const VERDICT: Record<ScoreBand, string> = {
+  strong: "Strong match",
+  fair: "Fair match",
+  weak: "Needs work",
+};
 
 function ScoreRing({ score }: { score: number }) {
   const r = 52;
@@ -35,16 +41,23 @@ function Chips({ items, kind }: { items: string[]; kind: "match" | "miss" }) {
 
 export function ReportView({ report }: { report: Report }) {
   const coverage = skillsCoverage(report);
+  const band = scoreBand(Math.max(0, Math.min(100, report.ats_score)));
   return (
     <div className="stack">
       <section className="card score-card">
         <ScoreRing score={report.ats_score} />
-        <div className="stack-sm">
+        <div className="score-body">
+          <p className={`score-verdict band-${band}`}>{VERDICT[band]}</p>
           <p>{report.score_rationale}</p>
           {coverage !== null && (
-            <p className="muted small">
-              Skills coverage: {report.matched_skills.length} of {report.matched_skills.length + report.missing_skills.length} ({coverage}%)
-            </p>
+            <div className="stack-sm">
+              <p className="muted small">
+                Skills coverage: {report.matched_skills.length} of {report.matched_skills.length + report.missing_skills.length} ({coverage}%)
+              </p>
+              <div className="meter" aria-hidden="true">
+                <span style={{ width: `${coverage}%` }} />
+              </div>
+            </div>
           )}
         </div>
       </section>
@@ -58,11 +71,15 @@ export function ReportView({ report }: { report: Report }) {
 
       <div className="grid-2">
         <section className="card">
-          <h2>Matched skills</h2>
+          <h2>
+            Matched skills<span className="count">{report.matched_skills.length}</span>
+          </h2>
           <Chips items={report.matched_skills} kind="match" />
         </section>
         <section className="card">
-          <h2>Missing skills</h2>
+          <h2>
+            Missing skills<span className="count">{report.missing_skills.length}</span>
+          </h2>
           <Chips items={report.missing_skills} kind="miss" />
         </section>
       </div>

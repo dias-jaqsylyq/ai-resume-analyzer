@@ -63,7 +63,18 @@ export function AppProvider({ children, signedOut }: { children: ReactNode; sign
     };
   }, [state]);
 
-  if (state.kind === "loading") return <p className="muted center">Loading…</p>;
-  if (state.kind === "error") return <p className="alert center">{state.message}</p>;
+  if (state.kind === "loading")
+    return (
+      <div className="page-status" aria-busy="true">
+        <div className="spinner" aria-hidden="true" />
+        <p className="muted">Loading…</p>
+      </div>
+    );
+  if (state.kind === "error")
+    return (
+      <div className="page-status">
+        <p className="alert">{state.message}</p>
+      </div>
+    );
   return <AppContext.Provider value={app}>{app?.email ? children : signedOut}</AppContext.Provider>;
 }

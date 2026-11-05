@@ -11,7 +11,7 @@ export function Shell({ children }: { children: ReactNode }) {
       signedOut={
         <>
           <Header />
-          <main className="container">
+          <main className="container auth-wrap">
             <SignIn />
           </main>
         </>

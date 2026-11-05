@@ -90,3 +90,18 @@ export function formatDate(iso: string | null | undefined): string {
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
+
+export type StepState = "done" | "active" | "todo" | "failed";
+export type ProgressStep = { label: string; state: StepState };
+
+/** The three stages the dashboard shows while the pipeline runs, derived from the status alone. */
+export function progressSteps(status: Status): ProgressStep[] {
+  const labels = ["CV uploaded", "Reading and scoring", "Report ready"];
+  const states: Record<Status, StepState[]> = {
+    PENDING: ["active", "todo", "todo"],
+    PROCESSING: ["done", "active", "todo"],
+    DONE: ["done", "done", "done"],
+    FAILED: ["done", "failed", "todo"],
+  };
+  return labels.map((label, i) => ({ label, state: states[status][i] }));
+}

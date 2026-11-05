@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { failureMessage, isTerminal, scoreBand, skillsCoverage, sortSuggestions, type Suggestion } from "../lib/report.ts";
+import { failureMessage, isTerminal, progressSteps, scoreBand, skillsCoverage, sortSuggestions, type Suggestion } from "../lib/report.ts";
 
 test("scoreBand thresholds", () => {
   assert.equal(scoreBand(100), "strong");
@@ -40,4 +40,13 @@ test("failure messages map backend error codes, with a fallback", () => {
   assert.match(failureMessage("AnalysisBlocked"), /safety/);
   assert.match(failureMessage(undefined), /failed/);
   assert.match(failureMessage("SomethingNew"), /failed/);
+});
+
+test("progressSteps follows the status", () => {
+  const states = (s: Parameters<typeof progressSteps>[0]) => progressSteps(s).map((p) => p.state);
+  assert.deepEqual(states("PENDING"), ["active", "todo", "todo"]);
+  assert.deepEqual(states("PROCESSING"), ["done", "active", "todo"]);
+  assert.deepEqual(states("DONE"), ["done", "done", "done"]);
+  assert.deepEqual(states("FAILED"), ["done", "failed", "todo"]);
+  assert.equal(progressSteps("DONE").length, 3);
 });

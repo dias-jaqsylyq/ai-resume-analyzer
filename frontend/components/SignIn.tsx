@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useApp } from "./AppProvider.tsx";
-import { BrandMark } from "./Icons.tsx";
 
 type Mode = "signin" | "signup" | "confirm";
 
@@ -48,12 +47,15 @@ export function SignIn() {
   return (
     <section className="card auth">
       <div className="auth-head">
-        <BrandMark size={28} />
         <h1>{title}</h1>
         <p className="muted">
-          {mode === "confirm"
-            ? "Enter the code from your email to finish."
-            : "Score your CV against a job description and get concrete edits."}
+          {
+            {
+              signin: "Welcome back. Sign in to see your analyses.",
+              signup: "Free. Takes about a minute.",
+              confirm: "Enter the code from your email to finish.",
+            }[mode]
+          }
         </p>
       </div>
       <form onSubmit={submit} className="stack">

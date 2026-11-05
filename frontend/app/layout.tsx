@@ -2,9 +2,14 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 
+const DESCRIPTION = "See how well your CV fits the job: an ATS score, matched and missing skills, and concrete edits.";
+
 export const metadata: Metadata = {
-  title: "AI Resume Analyzer",
-  description: "Score a CV against a job description: ATS score, skills match and suggestions.",
+  title: "FitScore · CV analyzer",
+  description: DESCRIPTION,
+  applicationName: "FitScore",
+  openGraph: { title: "FitScore", description: DESCRIPTION, type: "website" },
+  twitter: { card: "summary", title: "FitScore", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

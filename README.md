@@ -13,7 +13,7 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
 ![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)
 ![AWS serverless](https://img.shields.io/badge/AWS-serverless-232F3E?logo=amazonwebservices&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-149%20passing-2ea44f)
+![Tests](https://img.shields.io/badge/tests-158%20passing-2ea44f)
 ![Coverage](https://img.shields.io/badge/coverage-97%25-2ea44f)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -26,7 +26,7 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
   <img src="docs/images/hero-light.png" alt="FitScore report page on desktop and the new-analysis form on a phone">
 </picture>
 
-| 62 | ~$0.003 | $0 | 149 |
+| 62 | ~$0.003 | $0 | 158 |
 | :---: | :---: | :---: | :---: |
 | AWS resources, all Terraform | per CV analyzed ([cost model](docs/metrics.md#estimates-cost-model-not-a-bill)) | at idle, nothing always-on | unit tests, 97% backend coverage |
 
@@ -35,6 +35,8 @@ An event-driven, serverless AWS pipeline that scores a CV (PDF) against a job de
 ## Demo
 
 https://github.com/user-attachments/assets/11721fa3-d11b-40a0-b9ce-1cf9d21ca6ff
+
+<sub>One minute, no voice: sign in, run the sample CV, read the report, switch to dark mode, open the history. The report in the video comes from mock mode (see [Project status](#project-status)). Music: "Ambient Soft Background Music" from [Pixabay](https://pixabay.com/music/ambient-soft-background-music-629700/) (Pixabay Content License).</sub>
 
 The hosted demo is torn down after recording to keep the cost at $0. You can [deploy your own copy](#run-it-yourself); CI does the whole deploy.
 

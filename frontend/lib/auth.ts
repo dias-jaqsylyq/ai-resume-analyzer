@@ -8,6 +8,7 @@ import {
   type CognitoUserSession,
 } from "amazon-cognito-identity-js";
 import type { AppConfig } from "./config.ts";
+import { displayEmail } from "./user.ts";
 
 export class Auth {
   private readonly pool: CognitoUserPool;
@@ -20,8 +21,10 @@ export class Auth {
     return new CognitoUser({ Username: email.trim().toLowerCase(), Pool: this.pool });
   }
 
-  currentEmail(): string | null {
-    return this.pool.getCurrentUser()?.getUsername() ?? null;
+  /** The signed-in user's email (from the ID token; the stored username is the user's sub). */
+  currentEmail(session?: CognitoUserSession | null): string | null {
+    const username = this.pool.getCurrentUser()?.getUsername() ?? null;
+    return displayEmail(session?.getIdToken().decodePayload(), username);
   }
 
   /** A valid session (refreshed if needed) or null when nobody is signed in. */

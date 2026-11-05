@@ -36,7 +36,7 @@ export function AppProvider({ children, signedOut }: { children: ReactNode; sign
       const auth = new Auth(config);
       const api = new ApiClient(config.apiUrl, () => auth.accessToken());
       const session = await auth.session();
-      setState({ kind: "ready", auth, api, email: session ? auth.currentEmail() : null });
+      setState({ kind: "ready", auth, api, email: session ? auth.currentEmail(session) : null });
     } catch {
       setState({ kind: "error", message: "The app is not configured yet (config.json is missing or invalid)." });
     }
@@ -54,7 +54,7 @@ export function AppProvider({ children, signedOut }: { children: ReactNode; sign
       email: state.email,
       refresh: async () => {
         const session = await state.auth.session();
-        setState({ ...state, email: session ? state.auth.currentEmail() : null });
+        setState({ ...state, email: session ? state.auth.currentEmail(session) : null });
       },
       signOut: () => {
         state.auth.signOut();

@@ -9,6 +9,7 @@ Talk to Dias in Russian; write code, comments, commits, PRs and docs in English.
 - `docs/02-architecture.md` — target flow, data model, report JSON contract, repo layout
 - `docs/03-working-agreement.md` — workflow, PR format, decision rules, Notion tracker
 - `docs/04-references.md` — ideas to borrow and verified AWS facts
+- `docs/05-operations.md` — alarms, DLQ check and what to do with failed messages
 - `docs/decisions.md`, `docs/metrics.md` — keep these current
 
 ## Hard constraints (ask Dias before changing any of these)
@@ -55,6 +56,9 @@ Run from the repo root (`make help` lists targets).
   `BEDROCK_MODEL_ID`, `BEDROCK_GUARDRAIL_ID`/`_VERSION`, `MAX_RECEIVE_COUNT`, `CACHE_TTL_SECONDS`
 - Live API check (Dias, in CloudShell; prints only ids/status/score):
   `cd backend && API_URL=... CLIENT_ID=... SMOKE_EMAIL=... SMOKE_PASSWORD=... python3 scripts/api_smoke.py cv.pdf`
+- DLQ check (Dias, in CloudShell; ~40 min between steps; prints only ids/counts):
+  `cd backend && python3 scripts/dlq_check.py send`, later `python3 scripts/dlq_check.py check`
+- Alarms: `infra/alarms.tf` (9 alarms, no actions); runbook `docs/05-operations.md`
 - create-analysis env: `ANALYSES_TABLE`, `UPLOADS_BUCKET`, `UPLOADS_PREFIX`, `MAX_UPLOAD_BYTES`,
   `UPLOAD_URL_TTL_SECONDS`; read-analyses env: `ANALYSES_TABLE`
 - API (HTTP API + Cognito JWT): `POST /analyses`, `GET /analyses?limit=&cursor=`,

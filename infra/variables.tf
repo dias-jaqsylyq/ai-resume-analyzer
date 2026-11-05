@@ -52,7 +52,7 @@ variable "log_retention_days" {
 }
 
 variable "allowed_origins" {
-  description = "Browser origins allowed to call the API and upload to S3 (the frontend URL is added with the hosting task)"
+  description = "Extra browser origins allowed to call the API and upload to S3 (the CloudFront site URL is always added, see frontend.tf)"
   type        = list(string)
   default     = ["http://localhost:3000"]
 }

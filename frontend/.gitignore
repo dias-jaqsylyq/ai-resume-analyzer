@@ -1,0 +1,7 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+# Written at deploy time from Terraform outputs; for local dev copy config.example.json here.
+public/config.json

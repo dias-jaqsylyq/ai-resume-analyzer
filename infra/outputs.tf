@@ -62,3 +62,23 @@ output "cognito_client_id" {
   description = "Public Cognito app client for the web app"
   value       = aws_cognito_user_pool_client.web.id
 }
+
+output "web_url" {
+  description = "Dashboard URL (CloudFront)"
+  value       = "https://${aws_cloudfront_distribution.web.domain_name}"
+}
+
+output "web_bucket" {
+  description = "S3 bucket the frontend build is synced to"
+  value       = aws_s3_bucket.web.bucket
+}
+
+output "web_distribution_id" {
+  description = "CloudFront distribution to invalidate after a frontend deploy"
+  value       = aws_cloudfront_distribution.web.id
+}
+
+output "aws_region" {
+  description = "Region of the stack (written to the frontend config.json)"
+  value       = var.region
+}

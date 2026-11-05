@@ -45,6 +45,10 @@ Run from the repo root (`make help` lists targets).
 - Infra plan/apply: CI only (`.github/workflows/ci.yml`): plan on every PR, apply on push to main.
   Backend bucket comes from repo variable `TF_STATE_BUCKET`:
   `terraform -chdir=infra init -backend-config="bucket=$TF_STATE_BUCKET"`
+- Frontend (Node 22): `make web-install`, `make web-test` (tsc + `node --test`), `make web-build`
+  (static export to `frontend/out`). Local dev: copy `frontend/config.example.json` to
+  `frontend/public/config.json` with real stack outputs, then `make web-dev`.
+  Deploy: CI job `deploy-frontend` after `apply` on main (S3 sync + CloudFront invalidation).
 - Live Bedrock check (Dias, in AWS CloudShell; prints only counts/status):
   `cd backend && PYTHONPATH=src python3 scripts/bedrock_smoke.py`
 - process-analysis env: `ANALYSES_TABLE`, `CACHE_TABLE`, `BEDROCK_MODE` (`mock` default | `live`),

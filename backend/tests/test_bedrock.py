@@ -146,3 +146,15 @@ def test_mock_analysis_is_deterministic_keyword_match() -> None:
     assert {"python", "aws", "lambda"} <= set(first.report["matched_skills"])
     assert first.report["missing_skills"] == ["backend", "engineer", "terraform"]
     assert first.report["ats_score"] == 50
+
+
+def test_mock_skips_filler_words_and_counts_agree() -> None:
+    filler = "Build and run serverless workloads. Hands-on Lambda. Nice to have: keep it secure."
+    jd = filler + " " + " ".join(f"tool{i}" for i in range(60))
+    report = bedrock.analyze_mock("Lambda serverless", jd).report
+
+    skills = set(report["matched_skills"]) | set(report["missing_skills"])
+    assert not skills & {"build", "run", "hands", "nice", "keep"}
+    total = len(report["matched_skills"]) + len(report["missing_skills"])
+    assert f"of {total} job description" in report["score_rationale"]
+    assert report["ats_score"] == round(100 * len(report["matched_skills"]) / total)

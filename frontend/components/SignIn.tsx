@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useApp } from "./AppProvider.tsx";
+import { BrandMark } from "./Icons.tsx";
 
 type Mode = "signin" | "signup" | "confirm";
 
@@ -46,8 +47,15 @@ export function SignIn() {
 
   return (
     <section className="card auth">
-      <h1>{title}</h1>
-      <p className="muted">Score your CV against a job description and get concrete edits.</p>
+      <div className="auth-head">
+        <BrandMark size={28} />
+        <h1>{title}</h1>
+        <p className="muted">
+          {mode === "confirm"
+            ? "Enter the code from your email to finish."
+            : "Score your CV against a job description and get concrete edits."}
+        </p>
+      </div>
       <form onSubmit={submit} className="stack">
         <label>
           Email
@@ -66,7 +74,7 @@ export function SignIn() {
             />
           </label>
         ) : null}
-        {mode === "signup" && <p className="small muted">At least 12 characters, with upper case, lower case and a number.</p>}
+        {mode === "signup" && <p className="small muted hint-tight">At least 12 characters, with upper case, lower case and a number.</p>}
         {mode === "confirm" && (
           <label>
             Confirmation code
@@ -75,11 +83,11 @@ export function SignIn() {
         )}
         {info && <p className="note">{info}</p>}
         {error && <p className="alert" role="alert">{error}</p>}
-        <button type="submit" className="btn btn-primary" disabled={busy}>
+        <button type="submit" className="btn btn-primary btn-lg full" disabled={busy}>
           {busy ? "Please wait…" : title}
         </button>
       </form>
-      <p className="small center">
+      <p className="auth-foot">
         {mode === "signin" ? (
           <button type="button" className="link" onClick={() => { setMode("signup"); setError(null); }}>
             No account yet? Create one

@@ -5,7 +5,7 @@ import { Shell } from "@/components/Shell.tsx";
 export default function Home() {
   return (
     <Shell>
-      <div className="stack">
+      <div className="stack-lg">
         <NewAnalysis />
         <History />
       </div>

@@ -6,7 +6,7 @@ import { Shell } from "@/components/Shell.tsx";
 export default function AnalysisPage() {
   return (
     <Shell>
-      <Suspense fallback={<p className="muted">Loading…</p>}>
+      <Suspense fallback={<p className="muted center">Loading…</p>}>
         <AnalysisView />
       </Suspense>
     </Shell>

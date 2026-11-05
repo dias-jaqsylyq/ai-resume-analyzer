@@ -10,8 +10,8 @@ Rows marked **pending** need a run on the deployed stack by the owner (commands 
 | --- | --- | --- | --- |
 | AWS resources managed by Terraform (main stack) | 62 | `resource` blocks × `for_each` keys in `infra/*.tf` at `c252891` (48 blocks; 9 use `for_each` over the 3 functions / 2 API functions / 3 routes); cross-check: the last apply (PR #11) added 10 alarms/filters | 2026-11-05 |
 | AWS resources in the bootstrap stack (state bucket, OIDC, deploy role) | 8 | `resource` blocks in `infra/bootstrap/main.tf` (no `for_each`) | 2026-11-05 |
-| Backend unit tests | 133 passed | `cd backend && python3 -m pytest -q` (includes 5 tests for `scripts/benchmark.py`) | 2026-11-05 |
-| Backend statement coverage | 97% (719 statements, 22 missed) | `cd backend && python3 -m coverage run --source=src -m pytest -q && python3 -m coverage report` (coverage 7.17.2, not part of CI) | 2026-11-05 |
+| Backend unit tests | 142 passed | `cd backend && python3 -m pytest -q` (includes 5 tests for `scripts/benchmark.py`) | 2026-11-05 |
+| Backend statement coverage | 97% (774 statements, 26 missed) | `cd backend && python3 -m coverage run --source=src -m pytest -q && python3 -m coverage report` (coverage 7.17.2, not part of CI) | 2026-11-05 |
 | Frontend unit tests | 16 passed | `cd frontend && npm test` (`node --test`) | 2026-11-05 |
 | CI duration, pull request | p50 67 s, max 93 s (n = 10) | GitHub Actions run wall clock (created → completed) of the last 10 `ci` runs on PRs (#4–#12); jobs: ruff + pytest, frontend typecheck/tests/build, terraform fmt/validate/plan | 2026-11-05 |
 | CI duration, push to main (checks + apply + frontend deploy) | p50 106 s, max 267 s (n = 5) | Same, last 5 `ci` runs on `main` (#5, #8, #9, #10, #11 merges). Max = PR #10, which created the CloudFront distribution | 2026-11-05 |
